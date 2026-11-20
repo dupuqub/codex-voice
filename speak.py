@@ -50,6 +50,7 @@ def main():
     # Read a sample, existing text, or a command for the persistent reader.
     parser = argparse.ArgumentParser(description="Lê um texto com o Chatterbox PT-BR local.")
     actions = parser.add_mutually_exclusive_group()
+    actions.add_argument("--text", help="lê a frase informada")
     actions.add_argument("--sample", action="store_true", help="lê o trecho de Fernando Pessoa")
     actions.add_argument("--serve", action="store_true", help="mantém o modelo carregado na GPU")
     actions.add_argument("--stop", action="store_true", help="encerra o leitor local")
@@ -59,9 +60,12 @@ def main():
     voice_home = Path(os.environ.get("CODEX_VOICE_HOME") or data_home / "codex-voice").resolve()
     text = None
     if not args.serve and not args.stop:
-        text = SAMPLE if args.sample else sys.stdin.read().strip()
+        if args.sample:
+            text = SAMPLE
+        else:
+            text = (args.text if args.text is not None else sys.stdin.read()).strip()
         if not text:
-            parser.error("envie um texto pela entrada padrão ou use --sample")
+            parser.error("envie um texto pela entrada padrão ou use --text ou --sample")
 
     # Reuse the resident model when available. Keep one-shot playback available.
     if not args.serve:

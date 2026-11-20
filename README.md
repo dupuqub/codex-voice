@@ -40,11 +40,13 @@ leitura carrega o modelo somente para aquela resposta.
 
 ## Usar no terminal
 
-Para ler um texto já pronto, envie-o pela entrada padrão:
+Para ler um texto já pronto:
 
 ```sh
-printf '%s\n' 'Já conferi os arquivos. Podemos seguir.' | python3 speak.py
+python3 speak.py --text='Já conferi os arquivos. Podemos seguir.'
 ```
+
+A entrada padrão continua disponível para integração com outros scripts.
 
 Para fazer um pedido novo, use o Codex CLI autenticado:
 
@@ -56,8 +58,42 @@ Digite um pedido e pressione Enter. O Codex pode editar arquivos na pasta
 indicada. O script exibe a resposta final e a encaminha ao Chatterbox.
 A síntese usa a GPU e não faz uma chamada adicional ao Codex.
 
-## Usar em outra conversa com Codex
+## Usar com outros modelos no Codex do VS Code
 
-Diga “Leia o AGENTS.md do codex-voice e use o speak.py quando eu pedir
-uma resposta em voz alta.” O agente usa o texto que já escreveu para
-acionar a leitura.
+Abra o repositório no VS Code ou mantenha uma cópia local dele ao trabalhar
+em outro projeto. Se o terminal estiver em WSL ou numa sessão remota,
+o leitor e o Codex precisam executar no ambiente Linux que tem acesso ao
+mesmo processo local, à GPU e à saída de áudio. Inicie o leitor conforme
+a seção acima e espere “Voz pronta”.
+
+Envie esta instrução na outra conversa:
+
+> Leia o AGENTS.md do Codex Voice no caminho local que vou indicar.
+> Quando eu pedir uma resposta em voz alta, passe o texto que você já
+> escreveu ao speak.py com --text e o caminho absoluto do script.
+> Use o leitor local já carregado.
+
+Para confirmar o leitor fora do chat:
+
+```sh
+python3 /caminho/para/codex-voice/speak.py --text='Oi, a voz local está funcionando.'
+```
+
+No aviso de aprovação do Codex, a opção de autorizar comandos similares
+pode salvar o prefixo formado por `python3` e pelo caminho absoluto de
+`speak.py`. Use uma chamada direta ao script e passe a frase como argumento.
+O modelo selecionado no Codex escreve o texto. O Chatterbox local usa
+o mesmo preset para ler o texto que receber.
+
+## Estado dos testes de voz
+
+A configuração publicada usa a referência padrão `pt_br_f2.wav`. O leitor
+residente carregou em 20,9 s e preparou duas falas curtas em 5,5 s e 4,7 s,
+usando cerca de 3,5 GiB de VRAM no processo. A síntese usa a GPU local e
+não faz uma nova chamada ao Codex.
+
+Os testes com outros áudios de referência e reprodução a 1,25× e 1,5×
+foram avulsos. A altura reduzida artificialmente soou distorcida. A conversão
+RVC comunitária trocou o timbre, mas manteve a entonação animada da fala de
+origem e levou 42,5 s na CPU. A entrega mais calma ainda está em aberto.
+As amostras pessoais e os pesos dos modelos ficam fora deste repositório.

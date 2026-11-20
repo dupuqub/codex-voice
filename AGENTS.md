@@ -1,6 +1,5 @@
 # Codex Voice
 
-- Fale com o usuário em PT-BR. Quando ele pedir áudio, escreva a resposta normalmente e envie o trecho curto já escrito para `python3 speak.py` pela entrada padrão. Execute a partir deste repositório ou use o caminho absoluto para o script.
-- Para repetir a amostra aprovada, use `python3 speak.py --sample`. Preserve a configuração do script até o usuário pedir outro teste. A preferência é voz feminina mais grave, levemente rouca, contida e sem gírias, com um leve traço do interior paulista. A amostra aprovada usou a referência feminina padrão da demo.
-- `speak.py` usa uma demo pública e aceita até 300 caracteres por chamada. Envie apenas o trecho autorizado para leitura online. Use o texto pronto e dispense uma chamada adicional ao Codex ou uma nova pesquisa de voz.
-- Mantenha as mudanças pequenas, com comentários em inglês por bloco de intenção.
+- Fale com o usuário em PT-BR. Quando ele pedir áudio, envie o texto da resposta já escrita para `python3 speak.py` pela entrada padrão. Execute a partir deste repositório ou use o caminho absoluto do script.
+- Para repetir o poema de teste, use `python3 speak.py --sample`. Preserve a referência feminina `pt_br_f2.wav` e o preset aprovado. O usuário prefere uma leitura contida, sem gírias, com timbre feminino mais grave e levemente rouco. Um leve sotaque do interior paulista é uma preferência de voz, ainda sem teste específico.
+- A síntese é local. Reutilize o texto pronto sem outra chamada ao Codex e sem demos externas. Se o ambiente local não estiver instalado, siga o README. Mantenha as mudanças pequenas e os comentários em inglês por bloco de intenção.

@@ -53,7 +53,9 @@ def main():
     print(f"\n{reply}", flush=True)
     try:
         subprocess.run(
-            ["spd-say", "--language", "pt-BR", "--wait", "--", reply],
+            [sys.executable, str(Path(__file__).with_name("speak.py"))],
+            input=reply,
+            text=True,
             check=True,
         )
     except (OSError, subprocess.CalledProcessError) as error:

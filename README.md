@@ -1,7 +1,13 @@
 # Codex Voice
 
-Cliente de terminal para pedir ao Codex que trabalhe em um projeto e ouvir
-a resposta com a voz local do Chatterbox PT-BR.
+Ouça respostas do Codex em português do Brasil no terminal ou no VS Code.
+O Codex Voice usa o Chatterbox PT-BR para converter texto em fala na sua
+máquina. A síntese roda em Linux com GPU NVIDIA e não faz uma chamada
+adicional ao Codex.
+
+Independent, open-source read-aloud tool for Codex responses in Brazilian
+Portuguese. Local text-to-speech via Chatterbox on Linux with an NVIDIA GPU.
+See [local setup](#instalar-a-voz-local) and [VS Code usage](#usar-com-outros-modelos-no-codex-do-vs-code).
 
 ## Instalar a voz local
 

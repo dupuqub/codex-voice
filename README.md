@@ -100,3 +100,10 @@ Os testes com outros áudios de referência e reprodução a 1,25× foram avulso
 RVC comunitária trocou o timbre, mas manteve a entonação animada da fala de
 origem e levou 42,5 s na CPU. A entrega mais calma ainda está em aberto.
 As amostras pessoais e os pesos dos modelos ficam fora deste repositório.
+
+## Licença
+
+O código do Codex Voice está disponível sob a [GNU AGPL 3.0](LICENSE).
+O instalador obtém o Chatterbox e os arquivos de voz nas fontes indicadas
+em [setup-local.sh](setup-local.sh). Esses arquivos seguem os termos de
+seus respectivos projetos.

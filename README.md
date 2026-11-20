@@ -6,8 +6,10 @@ a resposta com a voz local do Chatterbox PT-BR.
 ## Instalar a voz local
 
 O fluxo foi testado em Linux com uma NVIDIA RTX 3050 de 6 GB. Instale
-`uv`, `git`, `curl` e `gst-play-1.0`, e confirme que o driver NVIDIA
-funciona com `nvidia-smi`. O instalador prepara Python 3.11.18,
+`uv`, `git`, `curl`, os plugins base e good do GStreamer e os bindings
+PyGObject do GStreamer para o Python do sistema. No Ubuntu, os pacotes de
+áudio são `python3-gi`, `gir1.2-gstreamer-1.0`, `gstreamer1.0-plugins-base`
+e `gstreamer1.0-plugins-good`. Confirme o driver NVIDIA com `nvidia-smi`. O instalador prepara Python 3.11.18,
 PyTorch 2.8 com CUDA 12.8, o código de inferência e a referência de voz.
 
 ```sh
@@ -19,7 +21,9 @@ O primeiro comando usa internet e baixa cerca de 3 GB de pesos, além
 das dependências do PyTorch. Os arquivos ficam em
 `${XDG_DATA_HOME:-$HOME/.local/share}/codex-voice`. Para escolher outro
 diretório, use a variável `CODEX_VOICE_HOME` na instalação e na execução.
-A síntese roda localmente após a instalação.
+A síntese roda localmente após a instalação. O áudio toca a 1,5× com
+preservação da altura da voz. A velocidade de geração depende do modelo
+e da GPU.
 
 O preset usa a referência feminina `pt_br_f2.wav`, intensidade 0,35,
 temperatura 0,7, semente 31 e CFG 0,32. No teste que confirmou a voz,
@@ -92,8 +96,7 @@ residente carregou em 20,9 s e preparou duas falas curtas em 5,5 s e 4,7 s,
 usando cerca de 3,5 GiB de VRAM no processo. A síntese usa a GPU local e
 não faz uma nova chamada ao Codex.
 
-Os testes com outros áudios de referência e reprodução a 1,25× e 1,5×
-foram avulsos. A altura reduzida artificialmente soou distorcida. A conversão
+Os testes com outros áudios de referência e reprodução a 1,25× foram avulsos. A altura reduzida artificialmente soou distorcida. A conversão
 RVC comunitária trocou o timbre, mas manteve a entonação animada da fala de
 origem e levou 42,5 s na CPU. A entrega mais calma ainda está em aberto.
 As amostras pessoais e os pesos dos modelos ficam fora deste repositório.

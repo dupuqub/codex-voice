@@ -4,7 +4,6 @@ import errno
 import json
 from pathlib import Path
 import random
-import shutil
 import socket
 import subprocess
 import sys
@@ -23,9 +22,6 @@ class Voice:
         # Load the approved checkpoint and prepare the voice reference once.
         import torch
 
-        self.player = shutil.which("gst-play-1.0")
-        if not self.player:
-            raise RuntimeError("Instale o gst-play-1.0 para reproduzir o áudio.")
         if not torch.cuda.is_available():
             raise RuntimeError("O Chatterbox local precisa de uma GPU NVIDIA com CUDA disponível.")
 
@@ -64,7 +60,8 @@ class Voice:
                 )
                 soundfile.write(audio_path, audio.squeeze().cpu().numpy(), self.model.sr)
                 print(f"Áudio pronto em {perf_counter() - started:.1f} s.", file=sys.stderr, flush=True)
-                subprocess.run([self.player, "--quiet", str(audio_path)], check=True)
+                player = Path(__file__).with_name("play_audio.py")
+                subprocess.run(["/usr/bin/python3", str(player), str(audio_path)], check=True)
 
 
 def serve(voice_home):

@@ -24,8 +24,19 @@ A síntese roda localmente após a instalação.
 O preset usa a referência feminina `pt_br_f2.wav`, intensidade 0,35,
 temperatura 0,7, semente 31 e CFG 0,32. No teste que confirmou a voz,
 o modelo carregou em 17,8 s e sintetizou a resposta em 13,9 s, com pico
-de 3,36 GiB de VRAM alocada. Os tempos variam e cada nova execução carrega
-o modelo novamente.
+de 3,36 GiB de VRAM alocada. Os tempos variam.
+
+## Manter a voz pronta na GPU
+
+Em um terminal, rode `python3 speak.py --serve` e espere aparecer
+“Voz pronta”. Deixe esse terminal aberto enquanto usar a voz. Em outro
+terminal, use os mesmos comandos de leitura abaixo. O leitor reutiliza
+o modelo e a referência já carregados. A memória de vídeo fica ocupada
+enquanto o leitor está aberto.
+
+Para liberar a GPU, pressione Ctrl+C no terminal do leitor ou rode
+`python3 speak.py --stop`. Se o leitor estiver parado, o comando de
+leitura carrega o modelo somente para aquela resposta.
 
 ## Usar no terminal
 

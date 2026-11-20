@@ -4,6 +4,7 @@ import errno
 import json
 from pathlib import Path
 import random
+import re
 import socket
 import subprocess
 import sys
@@ -15,6 +16,17 @@ from speak import reader_address, same_user
 
 
 VOICE_EXAGGERATION = 0.35
+SEGMENT_LIMIT = 200
+
+
+def speech_segments(text):
+    # Prefer sentence boundaries and cap long sentences for the synthesizer.
+    for sentence in re.split(r"(?<=[.!?…])\s+", text):
+        if len(sentence) <= SEGMENT_LIMIT:
+            if sentence.strip():
+                yield sentence
+        else:
+            yield from wrap(sentence, width=SEGMENT_LIMIT, break_on_hyphens=False)
 
 
 class Voice:
@@ -42,26 +54,36 @@ class Voice:
         import soundfile
         import torch
 
-        # Keep short inputs verbatim and reuse the voice across longer replies.
+        # Seed once so the sequence of segments is reproducible.
         random.seed(31)
         np.random.seed(31)
         torch.manual_seed(31)
-        segments = [text] if len(text) <= 200 else wrap(text, width=200)
+        player = Path(__file__).with_name("play_audio.py")
         with TemporaryDirectory() as directory, torch.inference_mode():
-            audio_path = Path(directory) / "resposta.wav"
-            for segment in segments:
-                started = perf_counter()
-                audio = self.model.generate(
-                    segment,
-                    language_id="pt",
-                    exaggeration=VOICE_EXAGGERATION,
-                    temperature=0.7,
-                    cfg_weight=0.32,
-                )
-                soundfile.write(audio_path, audio.squeeze().cpu().numpy(), self.model.sr)
-                print(f"Áudio pronto em {perf_counter() - started:.1f} s.", file=sys.stderr, flush=True)
-                player = Path(__file__).with_name("play_audio.py")
-                subprocess.run(["/usr/bin/python3", str(player), str(audio_path)], check=True)
+            playback = None
+            try:
+                for index, segment in enumerate(speech_segments(text)):
+                    audio_path = Path(directory) / f"resposta-{index % 2}.wav"
+                    started = perf_counter()
+                    audio = self.model.generate(
+                        segment,
+                        language_id="pt",
+                        exaggeration=VOICE_EXAGGERATION,
+                        temperature=0.7,
+                        cfg_weight=0.32,
+                    )
+                    soundfile.write(audio_path, audio.squeeze().cpu().numpy(), self.model.sr)
+                    print(f"Áudio pronto em {perf_counter() - started:.1f} s.", file=sys.stderr, flush=True)
+                    # Generate one segment ahead and keep playback in order.
+                    if playback is not None and playback.wait():
+                        raise subprocess.CalledProcessError(playback.returncode, playback.args)
+                    playback = subprocess.Popen(["/usr/bin/python3", str(player), str(audio_path)])
+                if playback is not None and playback.wait():
+                    raise subprocess.CalledProcessError(playback.returncode, playback.args)
+            finally:
+                if playback is not None and playback.poll() is None:
+                    playback.kill()
+                    playback.wait()
 
 
 def serve(voice_home):

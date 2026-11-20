@@ -30,22 +30,34 @@ def speech_segments(text):
 
 
 class Voice:
-    def __init__(self, voice_home):
+    def __init__(self, voice_home, language="pt"):
         # Load the approved checkpoint and prepare the voice reference once.
         import torch
 
         if not torch.cuda.is_available():
             raise RuntimeError("O Chatterbox local precisa de uma GPU NVIDIA com CUDA disponível.")
 
-        sys.path.insert(0, str(voice_home / "demo/chatterbox/src"))
+        self.language = language
+        source = voice_home / "demo"
+        weights = voice_home / "weights"
+        reference = voice_home / "reference.wav"
+        if language == "en":
+            profile = voice_home / "multilingual"
+            source = profile / "source"
+            weights = profile / "weights"
+            reference = weights / "en_f1.flac"
+            if not source.is_dir() or not reference.is_file():
+                raise RuntimeError("Instale os arquivos do perfil multilíngue antes de usar inglês.")
+
+        sys.path.insert(0, str(source / "chatterbox/src"))
         from chatterbox.tts import ChatterboxTTS
 
         print("Carregando o Chatterbox local...", file=sys.stderr, flush=True)
         started = perf_counter()
-        self.model = ChatterboxTTS.from_local(voice_home / "weights", "cuda")
+        self.model = ChatterboxTTS.from_local(weights, "cuda")
         with torch.inference_mode():
             self.model.prepare_conditionals(
-                str(voice_home / "reference.wav"), exaggeration=VOICE_EXAGGERATION
+                str(reference), exaggeration=VOICE_EXAGGERATION
             )
         print(f"Voz pronta em {perf_counter() - started:.1f} s.", file=sys.stderr, flush=True)
 
@@ -67,7 +79,7 @@ class Voice:
                     started = perf_counter()
                     audio = self.model.generate(
                         segment,
-                        language_id="pt",
+                        language_id=self.language,
                         exaggeration=VOICE_EXAGGERATION,
                         temperature=0.7,
                         cfg_weight=0.32,
@@ -86,7 +98,7 @@ class Voice:
                     playback.wait()
 
 
-def serve(voice_home):
+def serve(voice_home, language):
     # Bind before loading to prevent duplicate readers while the model starts.
     with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as listener:
         try:
@@ -96,7 +108,7 @@ def serve(voice_home):
                 raise RuntimeError("Já existe um leitor local neste ambiente.") from error
             raise
         listener.listen()
-        voice = Voice(voice_home)
+        voice = Voice(voice_home, language)
 
         # Accept requests from this user only and play them in sequence.
         while True:
@@ -111,6 +123,12 @@ def serve(voice_home):
                         text = json.loads(stream.readline())
                     stop = text is None
                     if not stop:
+                        requested_language = "pt"
+                        if isinstance(text, dict):
+                            requested_language = text.get("language")
+                            text = text.get("text")
+                        if requested_language != language:
+                            raise ValueError(f"O leitor ativo está em {language}. Solicite esse idioma ou troque o leitor.")
                         if not isinstance(text, str) or not text.strip():
                             raise ValueError("Envie um texto para leitura.")
                         voice.speak(text)
@@ -128,7 +146,7 @@ def serve(voice_home):
 def main():
     voice_home = Path(sys.argv[1])
     if "--serve" in sys.argv[2:]:
-        serve(voice_home)
+        serve(voice_home, sys.argv[3] if len(sys.argv) > 3 else "pt")
     else:
         Voice(voice_home).speak(sys.stdin.read())
 

@@ -95,6 +95,44 @@ pode salvar o prefixo formado por `python3` e pelo caminho absoluto de
 O modelo selecionado no Codex escreve o texto. O Chatterbox local usa
 o mesmo preset para ler o texto que receber.
 
+## Inglês americano experimental
+
+Depois de executar `setup-local.sh`, prepare o perfil multilíngue opcional.
+O download adicional ocupa cerca de 3 GiB.
+
+```sh
+voice_data="${CODEX_VOICE_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/codex-voice}"
+profile="$voice_data/multilingual"
+git init "$profile/source"
+git -C "$profile/source" fetch --depth 1 \
+  https://huggingface.co/spaces/ResembleAI/Chatterbox-Multilingual-TTS-V3 \
+  b21d9d062b4eda102f21975333276919935d2060
+git -C "$profile/source" checkout --detach FETCH_HEAD
+"$voice_data/venv/bin/hf" download ResembleAI/chatterbox \
+  ve.pt s3gen.pt t3_mtl23ls_v3.safetensors grapheme_mtl_merged_expanded_v1.json \
+  --revision 5bb1f6ee58e50c3b8d408bc82a6d3740c2db6e18 --local-dir "$profile/weights"
+curl -fL https://storage.googleapis.com/chatterbox-demo-samples/mtl_prompts/en_f1.flac \
+  -o "$profile/weights/en_f1.flac"
+```
+
+Encerre o leitor ativo e inicie o leitor em inglês. Aguarde “Voz pronta”.
+
+```sh
+python3 speak.py --stop
+python3 speak.py --serve --lang en
+```
+
+Em outro terminal, peça uma leitura pelo leitor já carregado.
+
+```sh
+python3 speak.py --lang en --text='Your changes are ready.'
+```
+
+No Codex do VS Code, use o comando direto com o caminho absoluto de
+`speak.py`, sem pipe ou shell de login. O prefixo de autorização continua
+sendo `python3` seguido pelo caminho do script. Para voltar ao português,
+encerre o leitor e inicie `python3 speak.py --serve`.
+
 ## Estado dos testes de voz
 
 A configuração publicada usa a referência padrão `pt_br_f2.wav`. O leitor

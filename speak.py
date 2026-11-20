@@ -48,7 +48,8 @@ def request_reader(voice_home, text):
 
 def main():
     # Read a sample, existing text, or a command for the persistent reader.
-    parser = argparse.ArgumentParser(description="Lê um texto com o Chatterbox PT-BR local.")
+    parser = argparse.ArgumentParser(description="Lê um texto com o Chatterbox local.")
+    parser.add_argument("--lang", choices=("pt", "en"), default="pt", help="idioma do leitor")
     actions = parser.add_mutually_exclusive_group()
     actions.add_argument("--text", help="lê a frase informada")
     actions.add_argument("--sample", action="store_true", help="lê o trecho de Fernando Pessoa")
@@ -61,7 +62,7 @@ def main():
     text = None
     if not args.serve and not args.stop:
         if args.sample:
-            text = SAMPLE
+            text = SAMPLE if args.lang == "pt" else "Your changes are ready."
         else:
             text = (args.text if args.text is not None else sys.stdin.read()).strip()
         if not text:
@@ -69,7 +70,8 @@ def main():
 
     # Reuse the resident model when available. Keep one-shot playback available.
     if not args.serve:
-        reply = request_reader(voice_home, text)
+        message = {"language": "en", "text": text} if text is not None and args.lang == "en" else text
+        reply = request_reader(voice_home, message)
         if reply is not None:
             if reply["message"]:
                 print(reply["message"], file=sys.stderr)
@@ -77,6 +79,8 @@ def main():
         if args.stop:
             print("O leitor local já está parado.")
             return 0
+        if args.lang == "en":
+            parser.error("Inicie o leitor com --serve --lang en antes de pedir áudio em inglês.")
 
     python = voice_home / "venv/bin/python"
     if not python.is_file():
@@ -89,7 +93,7 @@ def main():
     command = [str(python), "-B", str(worker), str(voice_home)]
     if args.serve:
         # Replace the launcher so Ctrl+C and service tools target the GPU process.
-        os.execve(python, command + ["--serve"], environment)
+        os.execve(python, command + ["--serve", args.lang], environment)
     return subprocess.run(command, input=text, text=True, env=environment).returncode
 
 
